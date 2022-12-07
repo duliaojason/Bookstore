@@ -30,14 +30,6 @@ pip install -r requirements.txt
 bash script/test.sh
 ```
 
-(先在本地创建bookstore数据库!)初始化数据库(python>=3.6)
-
-```bash
-python ./initialize_database/initialize_books.py
-python ./initialize_database/initialize_database.py
-python ./initialize_database/initialize_search_database.py
-```
-
 bookstore/fe/data/book.db中包含测试的数据，从豆瓣网抓取的图书信息， 其DDL为：
 
 ```
