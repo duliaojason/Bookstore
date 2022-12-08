@@ -561,9 +561,9 @@ hj6q
 
 ##### 作业的前60%看似只需要修改be/model中的内容，但是实验时一定要按照fe/test当中的文件进行修改。在修改的过程中如果一遍一遍地运行代码实在是太慢了，所以需要将
 
-#### 3.5testcase实现
+#### 3.5testcase实现（以下详细测试数据见代码）
 
-##### （1）在搭建完数据库之后，首先对数据库进行检查（连接engine之后导入书本的表作为例子进行检测）
+##### （1）在搭建完数据库之后，首先对数据库进行检查（连接engine之后导入书本的表作为例子进行检测）gen_book_data.py的测试：
 
 ```python
 #根据book的title和id查找书本是否被成功导入
@@ -593,7 +593,94 @@ with engine.connect() as conn:
 
 ![6](./cut/6.jpg)
 
-##### (2)
+##### (2)test_add_book.py
+
+```python
+    #创建 测试书本添加
+    test_store_book = StoreBook1(
+        id = '',
+        stock_level= ,
+        book_info = '',
+    )
+```
+
+##### (3)test_create_store.py/test_add_stock_level.py
+
+```python
+    # 创建 测试商店
+    test_store_1 = Store1(
+        store_id = '',
+        book_id = ,
+        stock_level = ,
+        price = , # 价格单位是分
+    )
+```
+
+##### (4)test_login.py/test_add_funds.py(结合用户买书或卖出书进行测试)
+
+```python
+    #创建 登录用户    
+    test_user_2 = User1(
+        user_id = '',
+        password = '',
+        balance = ,
+        token = '',
+        terminal = ''
+    )
+```
+
+##### （5）test_new_order.py
+
+```python
+    #创建 测试新的订单
+    test_order_unpaid = OrderBook1(
+        order_id = '',
+        buyer_id = '',
+        store_id = '',
+        price = ,
+        purchase_time = datetime.now(),
+    )
+```
+
+##### （6）test_password.py(在先注册用户之后，执行以下测试)
+
+```python
+    # 创建 测试用户
+    test_user_3 = User1(
+        user_id = '',
+        password = '',
+        balance = ,
+        token = '',
+        terminal = ''
+    )
+```
+
+##### （7）test_payment.py(在存在订单的情况下，执行以下测试)
+
+```python
+    # 创建 测试订单
+    test_order_paid = Order1(
+        order_id = '',
+        buyer_id = '',
+        store_id = '',
+        price = ,
+        purchase_time = datetime.now(),
+        status = 0  # 未发货
+    )
+```
+
+##### （8）test_register.py(尝试注册不存在和已经存在用户的区别)
+
+```python
+    # 创建 测试用户
+    test_user_1 = User1(
+        user_id = '',
+        password = '',
+        balance = ,
+        token = '',
+        terminal = ''
+    )
+```
 
 #### 3.6索引、事务处理(性能考量)
 
