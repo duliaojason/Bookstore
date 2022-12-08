@@ -1,14 +1,13 @@
-from sqlalchemy import Column, String, create_engine, Integer, Text, Date, LargeBinary, ForeignKey
-from sqlalchemy.orm import sessionmaker, scoped_session, relationship
+from sqlalchemy import Column,String,create_engine,Integer,Text,Date,LargeBinary,ForeignKey
+from sqlalchemy.orm import sessionmaker,scoped_session,relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 engine = None
 Base = declarative_base()
 DbSession = None
 
-
-# Postgresql，orm连接数据库
-class DataBase:
+# 数据库类，提供基本的数据库操作接口
+class DB:
     def __init__(self):
         self.engine = engine
         self.Base = Base
@@ -16,7 +15,7 @@ class DataBase:
 
     def user_id_exist(self, user_id):
         session = self.DbSession()
-        result = session.query(User1.user_id).filter(User1.user_id == user_id).first()
+        result = session.query(User.user_id).filter(User.user_id == user_id).first()
         session.close()
         if result is None:
             return False
@@ -26,9 +25,9 @@ class DataBase:
     def book_id_exist(self, store_id, book_id):
         session = self.DbSession()
         result = session.query(
-            StoreBook1
+            StoreBook
         ).filter(
-            StoreBook1.fk_store_id == store_id, StoreBook1.fk_book_id == book_id
+            StoreBook.fk_store_id == store_id, StoreBook.fk_book_id == book_id
         ).first()
         session.close()
         if result is None:
@@ -38,43 +37,42 @@ class DataBase:
 
     def store_id_exist(self, store_id):
         session = self.DbSession()
-        result = session.query(Store1.store_id).filter(Store1.store_id == store_id).first()
+        result = session.query(Store.store_id).filter(Store.store_id == store_id).first()
         session.close()
         if result is None:
             return False
         else:
             return True
-
-#在这里我们需要更新数据库，需要更新的分别是链接池的大小，还有就是需要设置报警的时间，防止出现卡顿，最后对进程进行回收
+        
+        
 def init_database():
     global engine, Base, DbSession
-    engine = create_engine(
-        "postgresql://stu10205501457:Stu10205501457@dase-cdms-2022-pub.pg.rds.aliyuncs.com:5432/stu10205501457",
-        max_overflow=0,
-        pool_size=5,
-        pool_timeout=10,
-        pool_recycle=1
-    )
+    engine = create_engine("postgresql://stu10205501457:Stu10205501457@dase-cdms-2022-pub.pg.rds.aliyuncs.com:5432/stu10205501457",
+            max_overflow=0,
+            # 链接池大小
+            pool_size=5,
+            # 链接池中没有可用链接则最多等待的秒数，超过该秒数后报错
+            pool_timeout=10,
+            # 多久之后对链接池中的链接进行一次回收
+            pool_recycle=1
+        )
     Session = sessionmaker(bind=engine)
     session = scoped_session(Session)
     DbSession = sessionmaker(bind=engine)
     Base = declarative_base()
-    # all tables are deleted
-    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-
-
+    
+    
 if __name__ == '__main__':
     init_database()
     print("done")
 
+        
 ############
 """tables"""
-
-
 ############
-#定义user表格，用户可以拥有买书和卖书的双权限
-class User1(Base):
+
+class User(Base):
     """用户表"""
     __tablename__ = "User"
     user_id = Column(String(128), primary_key=True, comment="用户名")
@@ -82,15 +80,13 @@ class User1(Base):
     balance = Column(Integer, nullable=False, comment="余额")
     token = Column(Text, nullable=False, comment="token")
     terminal = Column(String(32), nullable=False, comment="terminal")
-
-#定义书店（商铺）表格
-class Store1(Base):
+    
+class Store(Base):
     """书店表"""
     __tablename__ = "Store"
     store_id = Column(String(128), primary_key=True, comment="书店id")
-
-#定义书本表格
-class Book1(Base):
+    
+class Book(Base):
     """书籍表"""
     __tablename__ = "Book"
     id = Column(String(8), primary_key=True, comment="主键")
@@ -110,10 +106,9 @@ class Book1(Base):
     content = Column(Text, nullable=False, comment="目录")
     tags = Column(Text, nullable=False, comment="标记")
     picture = Column(LargeBinary, nullable=False, comment="图片")
-
-#定义用户和书店的关系表
-class StoreUser1(Base):
-    """关系表"""
+    
+class StoreUser(Base):
+    """书店-店主 关系表"""
     __tablename__ = "StoreUser"
     id = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
     fk_store_id = Column(
@@ -145,10 +140,9 @@ class StoreUser1(Base):
         "Store",
         backref="store_user",
     )
-
-#定义书店和里面藏书的关系
-class StoreBook1(Base):
-    """关系表"""
+    
+class StoreBook(Base):
+    """书店-书本 关系表"""
     __tablename__ = "StoreBook"
     id = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
     stock_level = Column(Integer, nullable=False, comment="库存")
@@ -173,7 +167,7 @@ class StoreBook1(Base):
         nullable=False,
         comment="书本"
     )
-
+    
     """用于正反查询，书店和书本"""
     store = relationship(
         "Store",
@@ -183,9 +177,8 @@ class StoreBook1(Base):
         "Book",
         backref="store_book",
     )
-
-#定义订单的各类状态
-class Order1(Base):
+    
+class Order(Base):
     """订单表"""
     __tablename__ = "Order"
     order_id = Column(String(200), primary_key=True, comment="主键")
@@ -200,7 +193,7 @@ class Order1(Base):
            -1: 已取消
     """
     status = Column(Integer, nullable=False, comment="状态")
-
+    
     fk_buyer_id = Column(
         String(128),
         ForeignKey(
@@ -221,17 +214,17 @@ class Order1(Base):
         nullable=False,
         comment="书店"
     )
-
-#定义账单和书本之间的关系，这里一定要注意账单可以订到重复的同样的书本，同时相同的书本也可以被多个账单涉及
-class OrderBook1(Base):
+    
+class OrderBook(Base):
     """
-       对应表
+       订单-书本对应表
+       一个订单可能对应多个书本，一个书本也可能对应多个订单
     """
     __tablename__ = "OrderBook"
     id = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
     num = Column(Integer, nullable=False, comment="数量")
     price = Column(Integer, nullable=False, comment="总价")
-
+    
     fk_order_id = Column(
         String(200),
         ForeignKey(
@@ -252,7 +245,7 @@ class OrderBook1(Base):
         nullable=False,
         comment="书本"
     )
-
+    
     """用于正反查询，订单和书本"""
     order = relationship(
         "Order",
