@@ -332,11 +332,45 @@ A connection can be used in more than a with statement and each with block is ef
 
 ##### 主动取消：这只存在与还没有发货并且账单处于未支付的状态下才成立的（通过用户id以及卖家与买家之间的账单交易情况可以确定账单情况），一旦确定账单处于可以被主动取消的情况，那么需要在用户表中更新买家和卖家的余额情况，并且将此被取消的账单信息加入到账单信息表中。
 
+```python
+#以下是买家主动取消订单的代码
+    def cancel_order(self, order_id, user_id, password) -> tuple((int, str)):
+            user = session.query().first()
+            if user is None:
+            if user.password != password:
+            order = session.query().first()
+            if order is None:
+            if order.status != 0:
+```
+
 ##### 自动取消：自动取消账单产生的原因就是账单长时间处于未支付的状态，那么到时间就会被自动取消。在本实验中，采取的方法是间隔一秒通过新的线程检查是否存在超时的账单，一旦发现超时，那么账单将被直接取消。同时建立一张表格，将时间接近取消的账单添加进表格中，方便后续的检查。（通过python中的threading实现，需要注意的是，需要自定义方法在操作终止时记录结束的时间）
+
+```python
+#以下就属于支付超时的情况，在这里设定时间不可以超过1天，否则到时间订单就会自动取消  
+           for od in result:
+                if (cur_time - od.time).days > 1:
+                    od.status = -1
+                    session.add(od)
+                    continue
+```
 
 #### 2.2.5 买家确认收货 
 
 ##### 首先通过买家的id确定此账单的具体信息（是否发货，账单状态是否与买家对应并且正常）；
+
+```python
+#以下是大致实现框架    
+    def take_delivery(self, order_id, user_id, password) -> tuple((int, str)):
+            user = session.query().first()
+            if user is None:
+            if user.password != password:
+            order = session.query(
+            ).first()
+            if order is None:
+            if order.status != 2:
+```
+
+
 
 ##### 一旦以上条件都符合，那么就将视买家已经收到货。
 
@@ -390,7 +424,16 @@ records = self.session.execute(
 
 #### 2.2.9 买家查看订单状态 
 
-##### 买家可以通过自己的id对账单信息进行查看（不仅可以查看待付款的账单，还可以直接连接到账单信息表中，查看已付款账单和被取消的账单）
+##### 买家可以通过自己的id对账单信息进行查看（不仅可以查看待付款的账单，还可以直接连接到账单信息表中，查看已付款账单和被取消的账单），等同于查看历史订单
+
+```python
+    def search_orders(self, user_id, password) -> tuple((int, str, [])):
+            cur_time = datetime.datetime.now()
+            cur_time = datetime.date(cur_time.year, cur_time.month, cur_time.day)
+            user = session.query().first()
+            if user is None:
+            if user.password != password:
+```
 
 #### 2.2.10 买家查看所有进⾏中的订单 
 
@@ -429,6 +472,17 @@ records = self.session.execute(
 ##### 通过账单的id对账单的实时状态进行查询（并且需要对应书店id）；
 
 ##### 一旦发现账单的状态是未完成发货，那么需要比较书店id和卖家id；
+
+```python
+#以下为实现的大致框架
+    def deliver_goods(self, order_id, store_id) -> tuple((int ,str)):
+        try:
+            if not self.store_id_exist(store_id):
+            order = session.query(
+            ).first()
+            if order is None:
+            if order.status != 1:
+```
 
 ##### 如果满足以上条件，那么更新账单状态为已发货。
 
